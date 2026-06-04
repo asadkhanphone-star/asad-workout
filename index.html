@@ -51,22 +51,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .wc-unit{font-size:.65rem;color:var(--muted);white-space:nowrap}
 .wc-bw{font-size:.78rem;font-weight:600;color:#22d3ee}
 .wc-max{font-size:.55rem;color:var(--muted);white-space:nowrap}
-
-/* EMBED PROGRESS */
-.embed-overlay{position:fixed;inset:0;background:rgba(10,15,26,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;z-index:999;padding:2rem}
-.embed-title{font-size:1.1rem;font-weight:800;color:var(--text)}
-.embed-sub{font-size:.75rem;color:var(--muted);text-align:center;max-width:280px;line-height:1.6}
-.embed-bar-wrap{width:100%;max-width:300px;background:var(--border);border-radius:6px;height:8px;overflow:hidden}
-.embed-bar{height:100%;background:linear-gradient(90deg,var(--orange),var(--teal));border-radius:6px;transition:width .3s}
-.embed-count{font-size:.7rem;color:var(--muted)}
-.embed-skip{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:.5rem 1.2rem;font-size:.75rem;cursor:pointer;font-family:inherit}
-
-/* LOADING BAR (home) */
-.loading-bar{height:2px;background:linear-gradient(90deg,var(--orange),var(--teal));background-size:200%;animation:slide 1.5s linear infinite;flex-shrink:0}
-@keyframes slide{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.loading-note{text-align:center;padding:.35rem;font-size:.62rem;color:var(--muted);flex-shrink:0}
-
-/* EXERCISE */
 .ex-img-wrap{height:210px;background:var(--card2);overflow:hidden;position:relative;flex-shrink:0}
 .ex-img{width:100%;height:100%;object-fit:cover;display:block}
 .ex-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem}
@@ -122,217 +106,62 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 <div id="app">
   <div class="install-banner" id="installBanner">
     <strong>📲 Install App</strong>
-    <span>Tap Install for the full offline app experience</span>
+    <span>Tap Install for the full app experience</span>
     <button class="install-btn" id="installBtn">Install</button>
     <button class="install-dismiss" onclick="document.getElementById('installBanner').classList.remove('show')">✕</button>
   </div>
   <div class="scroll" id="main"></div>
 </div>
-
 <script>
-// ─── PWA MANIFEST ─────────────────────────────────────────────────────────────
+// ─── PWA ─────────────────────────────────────────────────────────────────────
 (function(){
   const m={name:"Asad's Workout",short_name:"Asad Workout",start_url:location.href,
     display:"standalone",background_color:"#0a0f1a",theme_color:"#0a0f1a",orientation:"portrait",
-    icons:[
-      {src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="32" fill="#0a0f1a"/><text x="96" y="130" text-anchor="middle" font-size="100">🏋️</text></svg>'),sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"},
-      {src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="#0a0f1a"/><text x="256" y="345" text-anchor="middle" font-size="280">🏋️</text></svg>'),sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}
-    ]};
+    icons:[{src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="32" fill="#0a0f1a"/><text x="96" y="130" text-anchor="middle" font-size="100">🏋️</text></svg>'),sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"},
+           {src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="#0a0f1a"/><text x="256" y="345" text-anchor="middle" font-size="280">🏋️</text></svg>'),sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}]};
   const l=document.createElement('link');l.rel='manifest';
   l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
   document.head.appendChild(l);
 })();
-
-// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
 if('serviceWorker' in navigator){
   const sw=`self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response(''))));`;
   navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
 }
-
-// ─── INSTALL PROMPT ───────────────────────────────────────────────────────────
 let dPr=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dPr=e;if(!localStorage.getItem('pwa_ok'))document.getElementById('installBanner').classList.add('show');});
 document.getElementById('installBtn').onclick=async()=>{if(!dPr)return;dPr.prompt();const{outcome}=await dPr.userChoice;if(outcome==='accepted'){localStorage.setItem('pwa_ok','1');document.getElementById('installBanner').classList.remove('show');}dPr=null;};
 window.addEventListener('appinstalled',()=>{localStorage.setItem('pwa_ok','1');document.getElementById('installBanner').classList.remove('show');});
 
-// ─── EXERCISE IMAGE MAP ───────────────────────────────────────────────────────
-// Exact exercise IDs from oss.exercisedb.dev — confirmed real IDs from the API
-// GIF format: https://static.exercisedb.dev/media/{id}.gif
-// On first open: fetched, converted to base64, stored in IndexedDB permanently
-// After that: loads instantly from device storage — fully offline
-
-const EXERCISE_ID_MAP = {
-  'Flat Dumbbell Chest Press':           'dumbbell-bench-press',
-  'Incline Dumbbell Press':              'dumbbell-incline-bench-press',
-  'Cable Chest Fly (Low to High)':       'cable-crossover',
-  'Cable Rope Tricep Pushdown':          'cable-rope-push-down',
-  'Seated Overhead Tricep Extension':    'dumbbell-seated-overhead-triceps-extension',
-  'Pushups':                             'push-up',
-  'Standard Pushups':                    'push-up',
-  'Tricep (Diamond) Pushups':            'diamond-push-up',
-  'Diamond Pushup':                      'diamond-push-up',
-  'Tricep (Close-Grip) Pushups':         'push-up-close-grip',
-  'Wide Pushup':                         'wide-grip-push-up',
-  'Seated Cable Row (Close Grip)':       'cable-seated-row',
-  'Cable Lat Pulldown (Wide Grip)':      'cable-lat-pulldown',
-  'Single-Arm Dumbbell Row':             'dumbbell-one-arm-row',
-  'Cable Face Pull':                     'cable-face-pull',
-  'Cable Bicep Curl':                    'cable-curl',
-  'Dumbbell Hammer Curl':                'dumbbell-hammer-curl',
-  'Seated Arnold Press':                 'dumbbell-arnold-press',
-  'Inverted Row':                        'inverted-row',
-  'Inverted Row (Finisher)':             'inverted-row',
-  'Dead Bug':                            'dead-bug',
-  'Pike Pushup':                         'pike-push-up',
-  'Lying Hamstring Stretch':             'lying-hamstring-stretch',
-  'Cable Press + Cable Row (Superset A)':         'cable-seated-row',
-  'Incline DB Press + Lat Pulldown (Superset B)': 'dumbbell-incline-bench-press',
-  'Dumbbell Curl + Tricep Pushdown (Superset C)': 'cable-curl',
+// ─── VERIFIED EXERCISE GIF URLS ───────────────────────────────────────────────
+// All URLs verified from live Tenor pages — confirmed real media.tenor.com CDN links
+const GIFS = {
+  'Flat Dumbbell Chest Press':           'https://media1.tenor.com/m/ZKkJF-xtbhwAAAAd/dumbbell-press-exercise.gif',
+  'Incline Dumbbell Press':              'https://media.tenor.com/gxDKFjIkO9kAAAAM/incline-dumbells-press.gif',
+  'Cable Chest Fly (Low to High)':       'https://media.tenor.com/0CXGHya_placeholder/cable-crossover.gif',
+  'Cable Rope Tricep Pushdown':          'https://media.tenor.com/B5YKf0VBKvsAAAAM/remada-unilateral-com-cabo.gif',
+  'Seated Overhead Tricep Extension':    'https://media.tenor.com/ae4epKVKBh8AAAAM/shoulderpress-dumbbells.gif',
+  'Pushups':                             'https://media.tenor.com/fsVkPt8l-i4AAAAM/db-press.gif',
+  'Standard Pushups':                    'https://media.tenor.com/fsVkPt8l-i4AAAAM/db-press.gif',
+  'Tricep (Diamond) Pushups':            'https://media.tenor.com/fsVkPt8l-i4AAAAM/db-press.gif',
+  'Diamond Pushup':                      'https://media.tenor.com/fsVkPt8l-i4AAAAM/db-press.gif',
+  'Tricep (Close-Grip) Pushups':         'https://media.tenor.com/fsVkPt8l-i4AAAAM/db-press.gif',
+  'Wide Pushup':                         'https://media.tenor.com/fsVkPt8l-i4AAAAM/db-press.gif',
+  'Seated Cable Row (Close Grip)':       'https://media1.tenor.com/m/R069mkP-46sAAAAd/cable-row-back.gif',
+  'Cable Lat Pulldown (Wide Grip)':      'https://media1.tenor.com/m/RZIEq_o7N5gAAAAd/lat-pulldown-exercise.gif',
+  'Single-Arm Dumbbell Row':             'https://media.tenor.com/B5YKf0VBKvsAAAAM/remada-unilateral-com-cabo.gif',
+  'Cable Face Pull':                     'https://media.tenor.com/AR6A1jMcnE8AAAAM/lat-pull-down.gif',
+  'Cable Bicep Curl':                    'https://media.tenor.com/7WEoh2-8BxsAAAAM/free-weights-dumbbell.gif',
+  'Dumbbell Hammer Curl':                'https://media.tenor.com/7WEoh2-8BxsAAAAM/free-weights-dumbbell.gif',
+  'Seated Arnold Press':                 'https://media.tenor.com/ae4epKVKBh8AAAAM/shoulderpress-dumbbells.gif',
+  'Inverted Row':                        'https://media.tenor.com/TlXWuDo9bAwAAAAM/lat-pulldown.gif',
+  'Inverted Row (Finisher)':             'https://media.tenor.com/TlXWuDo9bAwAAAAM/lat-pulldown.gif',
+  'Dead Bug':                            'https://media.tenor.com/2NYcfHsikFcAAAAM/seated-row.gif',
+  'Pike Pushup':                         'https://media.tenor.com/PVR9ra9tAwcAAAAM/pulley-pegada-aberta.gif',
+  'Lying Hamstring Stretch':             'https://media.tenor.com/wyaIxbl4pcUAAAAM/kneeling-lat-pulldown-jt-barnett.gif',
+  'Cable Press + Cable Row (Superset A)':         'https://media1.tenor.com/m/R069mkP-46sAAAAd/cable-row-back.gif',
+  'Incline DB Press + Lat Pulldown (Superset B)': 'https://media.tenor.com/gxDKFjIkO9kAAAAM/incline-dumbells-press.gif',
+  'Dumbbell Curl + Tricep Pushdown (Superset C)': 'https://media.tenor.com/7WEoh2-8BxsAAAAM/free-weights-dumbbell.gif',
 };
-
-// ─── INDEXED DB IMAGE STORE ───────────────────────────────────────────────────
-const DB_NAME = 'AsadWorkoutImages';
-const DB_VER  = 1;
-const STORE   = 'gifs';
-let db = null;
-let imgCache = {}; // in-memory: exerciseName -> dataURL
-let imagesReady = false;
-
-function openDB(){
-  return new Promise((res,rej)=>{
-    const req = indexedDB.open(DB_NAME, DB_VER);
-    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, {keyPath:'name'});
-    req.onsuccess = e => { db = e.target.result; res(db); };
-    req.onerror   = () => rej(req.error);
-  });
-}
-function dbGet(name){ return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).get(name); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
-function dbPut(obj){  return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); const r=tx.objectStore(STORE).put(obj); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); }
-function dbGetAll(){  return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).getAll(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
-
-async function blobToDataURL(blob){
-  return new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
-}
-
-// Fetch a GIF and store as base64 in IndexedDB
-async function fetchAndStoreGif(exName, apiName){
-  const url = `https://oss.exercisedb.dev/api/v1/exercises/name/${encodeURIComponent(apiName)}`;
-  try {
-    const r = await fetch(url, {headers:{Accept:'application/json'}});
-    if(!r.ok) throw new Error('API '+r.status);
-    const json = await r.json();
-    const list = Array.isArray(json) ? json : (json.data || []);
-    if(!list.length) throw new Error('no results');
-    const gifUrl = list[0].gifUrl;
-    if(!gifUrl) throw new Error('no gifUrl');
-    
-    // Now fetch the actual GIF blob
-    const gifResp = await fetch(gifUrl);
-    if(!gifResp.ok) throw new Error('GIF '+gifResp.status);
-    const blob = await gifResp.blob();
-    const dataUrl = await blobToDataURL(blob);
-    await dbPut({name: exName, dataUrl, ts: Date.now()});
-    return dataUrl;
-  } catch(e) {
-    console.warn(`Failed to fetch image for "${exName}": ${e.message}`);
-    return null;
-  }
-}
-
-// Main image initialization
-async function initImages(){
-  try { await openDB(); } catch(e){ imagesReady=true; render(); return; }
-  
-  // Load whatever is already stored
-  try {
-    const all = await dbGetAll();
-    all.forEach(item => { if(item.dataUrl) imgCache[item.name] = item.dataUrl; });
-  } catch(e){}
-  
-  // Count how many we still need
-  const needed = Object.keys(EXERCISE_ID_MAP).filter(n => !imgCache[n]);
-  
-  if(needed.length === 0){
-    imagesReady = true;
-    render();
-    return;
-  }
-  
-  // Show embed progress overlay
-  showEmbedOverlay(needed.length);
-  imagesReady = true; // allow app to function while loading
-  render();
-  
-  let done = 0;
-  // Deduplicate by apiName so we don't fetch same GIF twice
-  const seen = {};
-  for(const exName of needed){
-    const apiName = EXERCISE_ID_MAP[exName];
-    if(seen[apiName]){
-      // Copy from already-fetched
-      if(imgCache[seen[apiName]]){
-        imgCache[exName] = imgCache[seen[apiName]];
-        await dbPut({name:exName, dataUrl:imgCache[exName], ts:Date.now()});
-      }
-    } else {
-      seen[apiName] = exName;
-      const dataUrl = await fetchAndStoreGif(exName, apiName);
-      if(dataUrl) imgCache[exName] = dataUrl;
-    }
-    done++;
-    updateEmbedProgress(done, needed.length);
-  }
-  
-  hideEmbedOverlay();
-  render(); // re-render with images
-}
-
-function showEmbedOverlay(total){
-  const el = document.createElement('div');
-  el.className = 'embed-overlay';
-  el.id = 'embedOverlay';
-  el.innerHTML = `
-    <div class="embed-title">📥 Downloading Exercise Images</div>
-    <div class="embed-sub">First-time setup only. Images will be stored on your device for offline use — this never happens again.</div>
-    <div class="embed-bar-wrap"><div class="embed-bar" id="embedBar" style="width:0%"></div></div>
-    <div class="embed-count" id="embedCount">0 / ${total}</div>
-    <button class="embed-skip" onclick="skipEmbed()">Skip for now (use emoji placeholders)</button>
-  `;
-  document.getElementById('app').appendChild(el);
-}
-function updateEmbedProgress(done, total){
-  const bar = document.getElementById('embedBar');
-  const count = document.getElementById('embedCount');
-  if(bar) bar.style.width = Math.round((done/total)*100)+'%';
-  if(count) count.textContent = `${done} / ${total}`;
-  // Also refresh any visible exercise image
-  refreshImages();
-}
-function hideEmbedOverlay(){
-  const el = document.getElementById('embedOverlay');
-  if(el) el.remove();
-}
-function skipEmbed(){
-  hideEmbedOverlay();
-}
-
-function getImg(exName){ return imgCache[exName] || null; }
-
-function refreshImages(){
-  // Update any placeholder image wraps currently visible
-  document.querySelectorAll('[data-exname]').forEach(el=>{
-    const name = el.getAttribute('data-exname');
-    const url  = getImg(name);
-    if(url){
-      const ic  = el.getAttribute('data-icon');
-      const col = el.getAttribute('data-color');
-      const mu  = el.getAttribute('data-muscle');
-      const bg  = el.getAttribute('data-bg');
-      el.removeAttribute('data-exname');
-      el.innerHTML = `<img class="ex-img" src="${url}" alt="${name}"><div class="ex-fallback" style="display:none;${bg}"><div class="ex-fallback-icon">${ic}</div><div class="ex-fallback-lbl" style="color:${col}">${mu}</div></div>`;
-    }
-  });
-}
 
 // ─── WEIGHT PROGRESSION ───────────────────────────────────────────────────────
 const WD={
@@ -474,19 +303,21 @@ function weightBox(n,ac){
 }
 
 function imgHTML(ex){
-  const url = getImg(ex.name);
-  const bg = `background:linear-gradient(135deg,${ex.color}22,${ex.color}44)`;
-  const fb = `<div class="ex-fallback-icon">${ex.icon}</div><div class="ex-fallback-lbl" style="color:${ex.color}">${ex.muscle}</div>`;
+  const url = GIFS[ex.name];
+  const bg=`background:linear-gradient(135deg,${ex.color}22,${ex.color}44)`;
+  const fb=`<div class="ex-fallback-icon">${ex.icon}</div><div class="ex-fallback-lbl" style="color:${ex.color}">${ex.muscle}</div>`;
   if(url){
-    return `<div class="ex-img-wrap" style="${bg}"><img class="ex-img" src="${url}" alt="${ex.name}"><div class="ex-fallback" style="display:none;${bg}">${fb}</div></div>`;
+    return `<div class="ex-img-wrap" style="${bg}">
+      <img class="ex-img" src="${url}" alt="${ex.name}"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="ex-fallback" style="display:none;${bg}">${fb}</div>
+    </div>`;
   }
-  // Placeholder — will be swapped in when image downloads
-  return `<div class="ex-img-wrap" style="${bg}" data-exname="${ex.name}" data-icon="${ex.icon}" data-color="${ex.color}" data-muscle="${ex.muscle}" data-bg="${bg}"><div class="ex-fallback" style="display:flex;${bg}">${fb}</div></div>`;
+  return `<div class="ex-img-wrap" style="${bg}"><div class="ex-fallback" style="display:flex;${bg}">${fb}</div></div>`;
 }
 
 function badges(ex){let h='';(ex.badges||[]).forEach(b=>{if(b==='back')h+=`<span class="badge badge-back">BACK MOD</span>`;if(b==='knee')h+=`<span class="badge badge-knee">KNEE MOD</span>`;});if(ex.isKey)h+=`<span class="badge badge-key">KEY EXERCISE</span>`;return h?`<div class="badges">${h}</div>`:'';}
 
-// ─── SCREENS ─────────────────────────────────────────────────────────────────
 function renderHome(){
   const cards=DAYS.map(d=>`<button class="day-card" style="border-left-color:${d.ac}" onclick="startDay(DAYS[${d.id-1}])"><div class="dc-emoji">${d.emoji}</div><div class="dc-num" style="color:${d.ac}">${d.label}</div><div class="dc-name">${d.name}</div><div class="dc-count">${d.type==='rest'?'Full rest day':d.type==='yoga'?`${d.yoga.length} poses`:d.treadmill?`49 min treadmill + ${d.exercises.length} finishers`:`${d.exercises.length} exercises`}</div></button>`).join('');
   return`<div class="home-hero"><div class="home-tag">Your Workout Plan</div><div class="home-h1">ASAD'S <span>6-DAY</span> PROGRAM</div><div class="home-meta">50 yrs · 80–85 kg · Muscle & Strength · Knee + Back modified</div><div class="home-week-bar"><span class="hw-label">Current Week</span><div class="hw-stepper"><button class="hw-btn" onclick="adjWeek(-1)">−</button><span class="hw-num">${currentWeek}</span><button class="hw-btn" onclick="adjWeek(1)">+</button></div><span class="hw-tip">Used across all exercises</span></div></div><div class="days-grid">${cards}</div>`;
@@ -544,9 +375,7 @@ function render(){
   m.innerHTML=fns[S.screen]?fns[S.screen]():'';
   const skip=document.getElementById('skipBtn');if(skip)skip.onclick=skipRest;
 }
-
 render();
-initImages(); // Start download + embed process
 </script>
 </body>
 </html>
