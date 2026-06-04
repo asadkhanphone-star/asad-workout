@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0f1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Asad Workout">
+<title>Asad's Workout</title>
+<style>
+:root{--bg:#0a0f1a;--card:#111827;--card2:#1a2332;--border:#1e2d3d;--text:#e2e8f0;--muted:#94a3b8;--orange:#f97316;--teal:#0d7377;--green:#059669}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:15px}
+#app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto}
+.hdr{background:var(--card);padding:.65rem 1rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.hdr-back{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;min-width:36px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px}
+.hdr-title{font-size:.9rem;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr-sub{font-size:.65rem;color:var(--muted)}
+.prog{height:3px;background:var(--border);flex-shrink:0}
+.prog-fill{height:100%;transition:width .4s;border-radius:0 2px 2px 0}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+.home-hero{padding:1.5rem 1rem 1rem;text-align:center;background:linear-gradient(160deg,#0f1f35,var(--bg));border-bottom:1px solid var(--border)}
+.home-tag{font-size:.6rem;font-weight:700;letter-spacing:.2em;color:var(--orange);text-transform:uppercase;margin-bottom:.4rem}
+.home-h1{font-size:1.75rem;font-weight:800;line-height:1.1}
+.home-h1 span{color:var(--orange)}
+.home-meta{font-size:.65rem;color:var(--muted);margin-top:.3rem}
+.home-week-bar{display:flex;align-items:center;justify-content:center;gap:.75rem;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.65rem 1rem;margin:.75rem 1rem 0}
+.hw-label{font-size:.7rem;font-weight:600;color:var(--muted)}
+.hw-stepper{display:flex;align-items:center;gap:.4rem}
+.hw-btn{background:none;border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:6px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
+.hw-btn:active{background:var(--border)}
+.hw-num{font-size:1.1rem;font-weight:800;color:var(--orange);min-width:28px;text-align:center}
+.hw-tip{font-size:.65rem;color:var(--muted)}
+.days-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;padding:.9rem}
+.day-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.85rem;text-align:left;cursor:pointer;border-left-width:4px;min-height:75px;display:flex;flex-direction:column;gap:3px}
+.day-card:active{transform:scale(.97)}
+.dc-emoji{font-size:1.2rem}.dc-num{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.dc-name{font-size:.85rem;font-weight:700;line-height:1.2}.dc-count{font-size:.6rem;color:var(--muted);margin-top:2px}
+.wc-box{display:flex;align-items:center;gap:.5rem;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:.5rem .75rem;margin:.55rem 0;flex-wrap:wrap}
+.wc-week-group{display:flex;align-items:center;gap:.35rem;flex-shrink:0}
+.wc-week-label{font-size:.65rem;font-weight:600;color:var(--muted)}
+.wc-btn{background:none;border:1px solid var(--border);color:var(--text);width:26px;height:26px;border-radius:6px;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800}
+.wc-weeknum{font-size:.95rem;font-weight:800;color:var(--orange);min-width:22px;text-align:center}
+.wc-arrow{font-size:.75rem;color:var(--muted);flex-shrink:0}
+.wc-suggest{display:flex;align-items:baseline;gap:.3rem;flex:1;min-width:0}
+.wc-suggest-label{font-size:.6rem;color:var(--muted);white-space:nowrap}
+.wc-weight{font-size:1rem;font-weight:800;color:#22d3ee;white-space:nowrap}
+.wc-unit{font-size:.65rem;color:var(--muted);white-space:nowrap}
+.wc-bw{font-size:.78rem;font-weight:600;color:#22d3ee}
+.wc-max{font-size:.55rem;color:var(--muted);white-space:nowrap}
+
+/* EMBED PROGRESS */
+.embed-overlay{position:fixed;inset:0;background:rgba(10,15,26,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;z-index:999;padding:2rem}
+.embed-title{font-size:1.1rem;font-weight:800;color:var(--text)}
+.embed-sub{font-size:.75rem;color:var(--muted);text-align:center;max-width:280px;line-height:1.6}
+.embed-bar-wrap{width:100%;max-width:300px;background:var(--border);border-radius:6px;height:8px;overflow:hidden}
+.embed-bar{height:100%;background:linear-gradient(90deg,var(--orange),var(--teal));border-radius:6px;transition:width .3s}
+.embed-count{font-size:.7rem;color:var(--muted)}
+.embed-skip{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:.5rem 1.2rem;font-size:.75rem;cursor:pointer;font-family:inherit}
+
+/* LOADING BAR (home) */
+.loading-bar{height:2px;background:linear-gradient(90deg,var(--orange),var(--teal));background-size:200%;animation:slide 1.5s linear infinite;flex-shrink:0}
+@keyframes slide{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.loading-note{text-align:center;padding:.35rem;font-size:.62rem;color:var(--muted);flex-shrink:0}
+
+/* EXERCISE */
+.ex-img-wrap{height:210px;background:var(--card2);overflow:hidden;position:relative;flex-shrink:0}
+.ex-img{width:100%;height:100%;object-fit:cover;display:block}
+.ex-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem}
+.ex-fallback-icon{font-size:3rem}.ex-fallback-lbl{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.ex-body{padding:.85rem}
+.ex-tag{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:2px}
+.ex-name{font-size:1.2rem;font-weight:800;line-height:1.2;margin-bottom:3px}
+.ex-muscles{font-size:.7rem;color:var(--muted);margin-bottom:.5rem}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.65rem}
+.badge{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.04em}
+.badge-back{background:#fee2e2;color:#991b1b}.badge-knee{background:#fef3c7;color:#92400e}.badge-key{background:#d1fae5;color:#065f46}
+.ex-instr{font-size:.78rem;line-height:1.65;color:#cbd5e1;background:var(--card2);border-radius:8px;padding:.7rem .85rem;margin-bottom:.75rem}
+.sets-hd{display:flex;justify-content:space-between;margin-bottom:.35rem}
+.sets-lbl{font-size:.7rem;color:var(--muted)}.sets-val{font-size:.85rem;font-weight:800}
+.set-bars{display:flex;gap:5px;margin-bottom:.7rem}
+.set-pip{flex:1;height:5px;border-radius:3px;background:var(--border);transition:background .3s}
+.ex-meta{display:flex;justify-content:space-between;font-size:.65rem;color:var(--muted);margin-bottom:.65rem}
+.reps-box{background:var(--card2);border-radius:7px;padding:.45rem .7rem;text-align:center;flex-shrink:0}
+.reps-val{font-size:1.3rem;font-weight:800;line-height:1}.reps-lbl{font-size:.55rem;color:var(--muted);font-weight:600}
+.btn{display:block;width:100%;border:none;border-radius:10px;padding:.8rem;font-size:.85rem;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.01em;margin-bottom:.45rem;min-height:44px}
+.btn-primary{color:#fff}.btn-primary:active{opacity:.85}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted)}
+.rest-wrap{display:flex;flex-direction:column;align-items:center;padding:1.5rem 1rem;gap:.6rem}
+.rest-lbl{font-size:.65rem;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.rest-ex{font-size:1rem;font-weight:700;text-align:center}
+.rest-next{font-size:.78rem;color:var(--muted);text-align:center;max-width:280px}
+.section-hd{font-size:.95rem;font-weight:700;padding:.9rem 1rem .4rem}
+.section-sub{font-size:.7rem;color:var(--muted);padding:0 1rem .65rem}
+.tread-list{padding:0 .7rem;display:flex;flex-direction:column;gap:.35rem}
+.tread-row{display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;border-radius:8px;border-left:3px solid}
+.tread-phase{font-size:.8rem;font-weight:600}.tread-detail{font-size:.65rem;color:var(--muted)}.tread-dur{font-size:.85rem;font-weight:700;margin-left:auto}
+.center-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.5rem;min-height:380px;gap:.85rem}
+.big-icon{font-size:3rem}.screen-h2{font-size:1.4rem;font-weight:800}.screen-p{color:var(--muted);font-size:.85rem;line-height:1.7;max-width:300px}
+.yoga-card{background:var(--card);border-radius:10px;padding:.85rem 1rem;margin:.35rem .7rem;border-left:3px solid}
+.yoga-focus{font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.yoga-name{font-size:.95rem;font-weight:700;margin-bottom:2px}.yoga-dur{font-size:.65rem;color:var(--muted);margin-bottom:.35rem}.yoga-instr{font-size:.78rem;color:var(--muted);line-height:1.6}
+.complete-wrap{display:flex;flex-direction:column;align-items:center;padding:1.75rem 1.25rem;gap:.65rem;text-align:center}
+.stats-row{display:flex;gap:.65rem;justify-content:center;margin:.3rem 0}
+.stat-box{background:var(--card2);border-radius:9px;padding:.7rem 1rem;min-width:65px}
+.stat-n{font-size:1.7rem;font-weight:800;line-height:1}.stat-l{font-size:.65rem;color:var(--muted)}
+.cooldown-box{background:var(--card2);border-radius:9px;padding:.8rem;border-left:3px solid #6366f1;width:100%;text-align:left}
+.cooldown-tag{font-size:.58rem;font-weight:700;color:#818cf8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.25rem}.cooldown-txt{font-size:.75rem;color:var(--muted)}
+.rest-day-tips{background:var(--card2);border-radius:9px;padding:.85rem;width:100%;text-align:left;display:flex;flex-direction:column;gap:.45rem}
+.tip-row{display:flex;gap:.5rem;align-items:flex-start}.tip-check{color:var(--green);font-size:.8rem;margin-top:1px}.tip-txt{font-size:.78rem;color:var(--muted)}
+.install-banner{display:none;align-items:center;gap:.6rem;background:#0f2027;border-bottom:1px solid var(--border);padding:.55rem .85rem;font-size:.72rem;color:var(--muted);flex-shrink:0}
+.install-banner.show{display:flex}
+.install-banner strong{color:var(--orange)}
+.install-btn{background:var(--orange);color:#fff;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.install-dismiss{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:0 .2rem;flex-shrink:0;margin-left:auto}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="install-banner" id="installBanner">
+    <strong>📲 Install App</strong>
+    <span>Tap Install for the full offline app experience</span>
+    <button class="install-btn" id="installBtn">Install</button>
+    <button class="install-dismiss" onclick="document.getElementById('installBanner').classList.remove('show')">✕</button>
+  </div>
+  <div class="scroll" id="main"></div>
+</div>
+
+<script>
+// ─── PWA MANIFEST ─────────────────────────────────────────────────────────────
+(function(){
+  const m={name:"Asad's Workout",short_name:"Asad Workout",start_url:location.href,
+    display:"standalone",background_color:"#0a0f1a",theme_color:"#0a0f1a",orientation:"portrait",
+    icons:[
+      {src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="32" fill="#0a0f1a"/><text x="96" y="130" text-anchor="middle" font-size="100">🏋️</text></svg>'),sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"},
+      {src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="#0a0f1a"/><text x="256" y="345" text-anchor="middle" font-size="280">🏋️</text></svg>'),sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}
+    ]};
+  const l=document.createElement('link');l.rel='manifest';
+  l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
+  document.head.appendChild(l);
+})();
+
+// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  const sw=`self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response(''))));`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+}
+
+// ─── INSTALL PROMPT ───────────────────────────────────────────────────────────
+let dPr=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dPr=e;if(!localStorage.getItem('pwa_ok'))document.getElementById('installBanner').classList.add('show');});
+document.getElementById('installBtn').onclick=async()=>{if(!dPr)return;dPr.prompt();const{outcome}=await dPr.userChoice;if(outcome==='accepted'){localStorage.setItem('pwa_ok','1');document.getElementById('installBanner').classList.remove('show');}dPr=null;};
+window.addEventListener('appinstalled',()=>{localStorage.setItem('pwa_ok','1');document.getElementById('installBanner').classList.remove('show');});
+
+// ─── EXERCISE IMAGE MAP ───────────────────────────────────────────────────────
+// Exact exercise IDs from oss.exercisedb.dev — confirmed real IDs from the API
+// GIF format: https://static.exercisedb.dev/media/{id}.gif
+// On first open: fetched, converted to base64, stored in IndexedDB permanently
+// After that: loads instantly from device storage — fully offline
+
+const EXERCISE_ID_MAP = {
+  'Flat Dumbbell Chest Press':           'dumbbell-bench-press',
+  'Incline Dumbbell Press':              'dumbbell-incline-bench-press',
+  'Cable Chest Fly (Low to High)':       'cable-crossover',
+  'Cable Rope Tricep Pushdown':          'cable-rope-push-down',
+  'Seated Overhead Tricep Extension':    'dumbbell-seated-overhead-triceps-extension',
+  'Pushups':                             'push-up',
+  'Standard Pushups':                    'push-up',
+  'Tricep (Diamond) Pushups':            'diamond-push-up',
+  'Diamond Pushup':                      'diamond-push-up',
+  'Tricep (Close-Grip) Pushups':         'push-up-close-grip',
+  'Wide Pushup':                         'wide-grip-push-up',
+  'Seated Cable Row (Close Grip)':       'cable-seated-row',
+  'Cable Lat Pulldown (Wide Grip)':      'cable-lat-pulldown',
+  'Single-Arm Dumbbell Row':             'dumbbell-one-arm-row',
+  'Cable Face Pull':                     'cable-face-pull',
+  'Cable Bicep Curl':                    'cable-curl',
+  'Dumbbell Hammer Curl':                'dumbbell-hammer-curl',
+  'Seated Arnold Press':                 'dumbbell-arnold-press',
+  'Inverted Row':                        'inverted-row',
+  'Inverted Row (Finisher)':             'inverted-row',
+  'Dead Bug':                            'dead-bug',
+  'Pike Pushup':                         'pike-push-up',
+  'Lying Hamstring Stretch':             'lying-hamstring-stretch',
+  'Cable Press + Cable Row (Superset A)':         'cable-seated-row',
+  'Incline DB Press + Lat Pulldown (Superset B)': 'dumbbell-incline-bench-press',
+  'Dumbbell Curl + Tricep Pushdown (Superset C)': 'cable-curl',
+};
+
+// ─── INDEXED DB IMAGE STORE ───────────────────────────────────────────────────
+const DB_NAME = 'AsadWorkoutImages';
+const DB_VER  = 1;
+const STORE   = 'gifs';
+let db = null;
+let imgCache = {}; // in-memory: exerciseName -> dataURL
+let imagesReady = false;
+
+function openDB(){
+  return new Promise((res,rej)=>{
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, {keyPath:'name'});
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror   = () => rej(req.error);
+  });
+}
+function dbGet(name){ return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).get(name); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+function dbPut(obj){  return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); const r=tx.objectStore(STORE).put(obj); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); }
+function dbGetAll(){  return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).getAll(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+
+async function blobToDataURL(blob){
+  return new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(blob); });
+}
+
+// Fetch a GIF and store as base64 in IndexedDB
+async function fetchAndStoreGif(exName, apiName){
+  const url = `https://oss.exercisedb.dev/api/v1/exercises/name/${encodeURIComponent(apiName)}`;
+  try {
+    const r = await fetch(url, {headers:{Accept:'application/json'}});
+    if(!r.ok) throw new Error('API '+r.status);
+    const json = await r.json();
+    const list = Array.isArray(json) ? json : (json.data || []);
+    if(!list.length) throw new Error('no results');
+    const gifUrl = list[0].gifUrl;
+    if(!gifUrl) throw new Error('no gifUrl');
+    
+    // Now fetch the actual GIF blob
+    const gifResp = await fetch(gifUrl);
+    if(!gifResp.ok) throw new Error('GIF '+gifResp.status);
+    const blob = await gifResp.blob();
+    const dataUrl = await blobToDataURL(blob);
+    await dbPut({name: exName, dataUrl, ts: Date.now()});
+    return dataUrl;
+  } catch(e) {
+    console.warn(`Failed to fetch image for "${exName}": ${e.message}`);
+    return null;
+  }
+}
+
+// Main image initialization
+async function initImages(){
+  try { await openDB(); } catch(e){ imagesReady=true; render(); return; }
+  
+  // Load whatever is already stored
+  try {
+    const all = await dbGetAll();
+    all.forEach(item => { if(item.dataUrl) imgCache[item.name] = item.dataUrl; });
+  } catch(e){}
+  
+  // Count how many we still need
+  const needed = Object.keys(EXERCISE_ID_MAP).filter(n => !imgCache[n]);
+  
+  if(needed.length === 0){
+    imagesReady = true;
+    render();
+    return;
+  }
+  
+  // Show embed progress overlay
+  showEmbedOverlay(needed.length);
+  imagesReady = true; // allow app to function while loading
+  render();
+  
+  let done = 0;
+  // Deduplicate by apiName so we don't fetch same GIF twice
+  const seen = {};
+  for(const exName of needed){
+    const apiName = EXERCISE_ID_MAP[exName];
+    if(seen[apiName]){
+      // Copy from already-fetched
+      if(imgCache[seen[apiName]]){
+        imgCache[exName] = imgCache[seen[apiName]];
+        await dbPut({name:exName, dataUrl:imgCache[exName], ts:Date.now()});
+      }
+    } else {
+      seen[apiName] = exName;
+      const dataUrl = await fetchAndStoreGif(exName, apiName);
+      if(dataUrl) imgCache[exName] = dataUrl;
+    }
+    done++;
+    updateEmbedProgress(done, needed.length);
+  }
+  
+  hideEmbedOverlay();
+  render(); // re-render with images
+}
+
+function showEmbedOverlay(total){
+  const el = document.createElement('div');
+  el.className = 'embed-overlay';
+  el.id = 'embedOverlay';
+  el.innerHTML = `
+    <div class="embed-title">📥 Downloading Exercise Images</div>
+    <div class="embed-sub">First-time setup only. Images will be stored on your device for offline use — this never happens again.</div>
+    <div class="embed-bar-wrap"><div class="embed-bar" id="embedBar" style="width:0%"></div></div>
+    <div class="embed-count" id="embedCount">0 / ${total}</div>
+    <button class="embed-skip" onclick="skipEmbed()">Skip for now (use emoji placeholders)</button>
+  `;
+  document.getElementById('app').appendChild(el);
+}
+function updateEmbedProgress(done, total){
+  const bar = document.getElementById('embedBar');
+  const count = document.getElementById('embedCount');
+  if(bar) bar.style.width = Math.round((done/total)*100)+'%';
+  if(count) count.textContent = `${done} / ${total}`;
+  // Also refresh any visible exercise image
+  refreshImages();
+}
+function hideEmbedOverlay(){
+  const el = document.getElementById('embedOverlay');
+  if(el) el.remove();
+}
+function skipEmbed(){
+  hideEmbedOverlay();
+}
+
+function getImg(exName){ return imgCache[exName] || null; }
+
+function refreshImages(){
+  // Update any placeholder image wraps currently visible
+  document.querySelectorAll('[data-exname]').forEach(el=>{
+    const name = el.getAttribute('data-exname');
+    const url  = getImg(name);
+    if(url){
+      const ic  = el.getAttribute('data-icon');
+      const col = el.getAttribute('data-color');
+      const mu  = el.getAttribute('data-muscle');
+      const bg  = el.getAttribute('data-bg');
+      el.removeAttribute('data-exname');
+      el.innerHTML = `<img class="ex-img" src="${url}" alt="${name}"><div class="ex-fallback" style="display:none;${bg}"><div class="ex-fallback-icon">${ic}</div><div class="ex-fallback-lbl" style="color:${col}">${mu}</div></div>`;
+    }
+  });
+}
+
+// ─── WEIGHT PROGRESSION ───────────────────────────────────────────────────────
+const WD={
+  'Flat Dumbbell Chest Press':{s:8,i:2.5,m:26,u:'kg each'},
+  'Incline Dumbbell Press':{s:7.5,i:2.5,m:22.5,u:'kg each'},
+  'Cable Chest Fly (Low to High)':{s:8,i:2,m:20,u:'kg per side'},
+  'Cable Rope Tricep Pushdown':{s:12,i:2.5,m:32,u:'kg'},
+  'Seated Overhead Tricep Extension':{s:8,i:2,m:22,u:'kg (both hands)'},
+  'Seated Cable Row (Close Grip)':{s:25,i:5,m:70,u:'kg'},
+  'Cable Lat Pulldown (Wide Grip)':{s:25,i:5,m:65,u:'kg'},
+  'Single-Arm Dumbbell Row':{s:10,i:2.5,m:28,u:'kg'},
+  'Cable Face Pull':{s:10,i:2,m:22,u:'kg'},
+  'Cable Bicep Curl':{s:12,i:2.5,m:32,u:'kg'},
+  'Dumbbell Hammer Curl':{s:8,i:2,m:20,u:'kg each'},
+  'Seated Arnold Press':{s:7.5,i:2,m:18,u:'kg each'},
+  'Cable Press + Cable Row (Superset A)':{s:15,i:2.5,m:30,u:'kg (cable)'},
+  'Incline DB Press + Lat Pulldown (Superset B)':{s:8,i:2,m:20,u:'kg (DB each)'},
+  'Dumbbell Curl + Tricep Pushdown (Superset C)':{s:10,i:2,m:22,u:'kg'},
+  'Pushups':null,'Standard Pushups':null,'Tricep (Diamond) Pushups':null,
+  'Tricep (Close-Grip) Pushups':null,'Diamond Pushup':null,'Inverted Row':null,
+  'Inverted Row (Finisher)':null,'Dead Bug':null,'Pike Pushup':null,'Wide Pushup':null,
+  'Lying Hamstring Stretch':'stretch'
+};
+function calcWeight(n,w){
+  const k=Object.keys(WD).find(k=>n.toLowerCase().includes(k.toLowerCase())||k.toLowerCase().includes(n.toLowerCase().split(' ').slice(0,3).join(' ')));
+  const d=k?WD[k]:undefined;
+  if(d==='stretch')return{type:'stretch'};if(d===null)return{type:'bodyweight'};if(!d)return null;
+  let inc=w<=20?Math.floor((w-1)/2):Math.floor(19/2)+Math.floor((w-20)/3);
+  let wt=Math.min(d.s+inc*d.i,d.m);wt=Math.round(wt*4)/4;
+  const pct=Math.round((wt-d.s)/(d.m-d.s)*100);
+  return{type:'weighted',weight:wt,unit:d.u,max:d.m,pct:Math.max(0,Math.min(100,pct||0))};
+}
+let currentWeek=parseInt(localStorage.getItem('asad_week')||'1');
+function adjWeek(delta){currentWeek=Math.max(1,Math.min(52,currentWeek+delta));localStorage.setItem('asad_week',currentWeek);render();}
+
+// ─── EXERCISE DATA ────────────────────────────────────────────────────────────
+const DAYS=[
+  {id:1,label:'Day 1',name:'Chest & Triceps',type:'gym',emoji:'🏋️',ac:'#f97316',
+   warmup:'8–10 min elliptical at easy pace + 2 min arm circles and shoulder rolls',
+   cooldown:'Chest doorway stretch 30s · Cross-body shoulder stretch 30s each · Tricep overhead 30s each',
+   exercises:[
+    {name:'Flat Dumbbell Chest Press',sets:4,reps:'10–12',rest:90,icon:'💪',color:'#f97316',muscle:'Chest',muscles:'Chest · Triceps · Front Deltoids',instr:'Lie flat on bench, feet on floor. Lower dumbbells slowly (3 sec down), press up powerfully. Do not arch lower back.',badges:['back']},
+    {name:'Incline Dumbbell Press',sets:3,reps:'10–12',rest:90,icon:'📐',color:'#f97316',muscle:'Upper Chest',muscles:'Upper Chest · Front Deltoids',instr:'Bench at 30–45°. Targets upper chest. Core braced — lower back stays on bench.',badges:['back']},
+    {name:'Cable Chest Fly (Low to High)',sets:3,reps:'12–15',rest:60,icon:'🔗',color:'#f97316',muscle:'Chest',muscles:'Chest · Front Deltoids',instr:'Cables lowest position. Stand centre, slight lean. Bring hands in wide arc up to chest height. Full stretch at bottom.',badges:[]},
+    {name:'Cable Rope Tricep Pushdown',sets:3,reps:'12–15',rest:60,icon:'⬇️',color:'#7c3aed',muscle:'Triceps',muscles:'Triceps',instr:'Rope on high cable. Elbows pinned at sides — must not move. Push down and slightly out. Squeeze hard at bottom.',badges:[]},
+    {name:'Seated Overhead Tricep Extension',sets:3,reps:'12',rest:60,icon:'⬆️',color:'#7c3aed',muscle:'Triceps',muscles:'Triceps (Long Head)',instr:'Sit with back supported. One dumbbell overhead with both hands. Lower behind head slowly. Elbows pointing forward.',badges:['back']},
+    {name:'Pushups',sets:2,reps:'Max',rest:90,icon:'🤸',color:'#059669',muscle:'Chest',muscles:'Chest · Triceps · Core',instr:'Hands shoulder-width, body in straight line. Lower to inch from floor. Core tight — no sagging hips.',badges:[],isFinisher:true},
+    {name:'Tricep (Diamond) Pushups',sets:2,reps:'Max',rest:90,icon:'🔷',color:'#059669',muscle:'Triceps',muscles:'Triceps · Inner Chest',instr:'Diamond hands under chest. Elbows track back along sides. Maximum tricep load. Drop to knees if needed.',badges:[],isFinisher:true},
+   ]},
+  {id:2,label:'Day 2',name:'Treadmill + Finisher',type:'cardio',emoji:'🏃',ac:'#0d7377',
+   cooldown:'Lying hamstring stretch 60s each leg · Hip flexor stretch 45s each side',
+   treadmill:[
+    {phase:'Warm-up walk',dur:'3 min',speed:'4 km/h',incline:'0%',full:false},
+    {phase:'Full effort',dur:'17 min',speed:'5.5–6 km/h',incline:'15%',full:true},
+    {phase:'Recovery walk',dur:'3 min',speed:'4 km/h',incline:'0%',full:false},
+    {phase:'Full effort',dur:'10 min',speed:'5.5–6 km/h',incline:'15%',full:true},
+    {phase:'Recovery walk',dur:'3 min',speed:'4 km/h',incline:'0%',full:false},
+    {phase:'Full effort',dur:'10 min',speed:'5.5–6 km/h',incline:'15%',full:true},
+    {phase:'Cool-down walk',dur:'3 min',speed:'4 km/h',incline:'0%',full:false},
+   ],
+   exercises:[
+    {name:'Standard Pushups',sets:3,reps:'15',rest:45,icon:'🤸',color:'#0d7377',muscle:'Chest',muscles:'Chest · Triceps · Core',instr:'Body straight line, lower slowly, push powerfully. Core tight.',badges:[]},
+    {name:'Tricep (Close-Grip) Pushups',sets:3,reps:'12',rest:45,icon:'🔷',color:'#0d7377',muscle:'Triceps',muscles:'Triceps · Chest',instr:'Hands close, elbows back along sides. Directly isolates triceps.',badges:[]},
+    {name:'Inverted Row',sets:3,reps:'12',rest:60,icon:'🔄',color:'#0d7377',muscle:'Back',muscles:'Back · Biceps · Rear Deltoids',instr:'Cable bar at hip height. Lie underneath, grip overhand, body straight, heels on floor. Pull chest to bar.',badges:['back'],isKey:true},
+    {name:'Dead Bug',sets:3,reps:'10 each side',rest:45,icon:'🪲',color:'#dc2626',muscle:'Core',muscles:'Deep Core · Lower Back Stabilisers',instr:'Lie on back, arms to ceiling, knees 90°. Lower opposite arm and leg slowly — lower back stays FLAT to floor.',badges:['back'],isKey:true},
+    {name:'Lying Hamstring Stretch',sets:1,reps:'60s each leg',rest:0,icon:'🦵',color:'#0d7377',muscle:'Hamstrings',muscles:'Hamstrings · Calves',instr:'Lie on back. Towel around foot. Leg toward ceiling. Pull gently. Spine fully supported.',badges:['back','knee'],isStretch:true},
+   ]},
+  {id:3,label:'Day 3',name:'Back & Biceps',type:'gym',emoji:'🔙',ac:'#0891b2',
+   warmup:'8–10 min elliptical + 2 min light cable face pulls to warm up shoulder girdle',
+   cooldown:'Hang from cable bar 30s · Bicep wall stretch 30s each · Child\'s pose 60s',
+   exercises:[
+    {name:'Seated Cable Row (Close Grip)',sets:4,reps:'10–12',rest:90,icon:'🚣',color:'#0891b2',muscle:'Back',muscles:'Mid Back · Lats · Biceps',instr:'Sit tall, feet on platform. Pull elbows straight back. Squeeze shoulder blades. Never round lower back.',badges:['back'],isKey:true},
+    {name:'Cable Lat Pulldown (Wide Grip)',sets:3,reps:'10–12',rest:90,icon:'⬇️',color:'#0891b2',muscle:'Lats',muscles:'Lats · Biceps · Rear Deltoids',instr:'Wide grip, lean back slightly. Pull bar to upper chest, elbows drive down. Squeeze lats at bottom. No momentum.',badges:[],isKey:true},
+    {name:'Single-Arm Dumbbell Row',sets:3,reps:'10–12 each',rest:60,icon:'💪',color:'#0891b2',muscle:'Back',muscles:'Lats · Mid Back · Biceps',instr:'Same-side hand and knee on bench. Back flat parallel to floor. Pull dumbbell to hip, not shoulder.',badges:['back']},
+    {name:'Cable Face Pull',sets:3,reps:'15',rest:60,icon:'🎯',color:'#dc2626',muscle:'Rear Delts',muscles:'Rear Deltoids · Rotator Cuff · Upper Back',instr:'Cable at eye height. Pull rope to face, hands beside ears. Elbows high and wide. Never skip.',badges:[],isKey:true},
+    {name:'Cable Bicep Curl',sets:3,reps:'12–15',rest:60,icon:'💪',color:'#0891b2',muscle:'Biceps',muscles:'Biceps',instr:'Elbows pinned at sides — must not move. Curl to chin. Squeeze at top. Lower slowly 3 seconds.',badges:[]},
+    {name:'Dumbbell Hammer Curl',sets:3,reps:'12',rest:60,icon:'🔨',color:'#f59e0b',muscle:'Biceps',muscles:'Biceps · Brachialis · Forearms',instr:'Thumbs-up grip. Alternate arms. Works brachialis — adds arm thickness. No swinging.',badges:[]},
+    {name:'Inverted Row (Finisher)',sets:2,reps:'Max',rest:90,icon:'🔄',color:'#059669',muscle:'Back',muscles:'Back · Biceps',instr:'Same Day 2 setup. Cable bar at hip height. Max reps both sets.',badges:['back'],isFinisher:true},
+   ]},
+  {id:4,label:'Day 4',name:'Treadmill + Finisher',type:'cardio',emoji:'🏃',ac:'#0d7377',
+   cooldown:'Lying hamstring stretch 60s each leg · Hip flexor stretch 45s each side',
+   treadmill:[
+    {phase:'Warm-up walk',dur:'3 min',speed:'4 km/h',incline:'0%',full:false},
+    {phase:'Full effort',dur:'17 min',speed:'5.5–6 km/h',incline:'15%',full:true},
+    {phase:'Recovery walk',dur:'3 min',speed:'4 km/h',incline:'0%',full:false},
+    {phase:'Full effort',dur:'10 min',speed:'5.5–6 km/h',incline:'15%',full:true},
+    {phase:'Recovery walk',dur:'3 min',speed:'4 km/h',incline:'0%',full:false},
+    {phase:'Full effort',dur:'10 min',speed:'5.5–6 km/h',incline:'15%',full:true},
+    {phase:'Cool-down walk',dur:'3 min',speed:'4 km/h',incline:'0%',full:false},
+   ],
+   exercises:[
+    {name:'Standard Pushups',sets:3,reps:'15',rest:45,icon:'🤸',color:'#0d7377',muscle:'Chest',muscles:'Chest · Triceps',instr:'Same as Day 2.',badges:[]},
+    {name:'Tricep (Close-Grip) Pushups',sets:3,reps:'12',rest:45,icon:'🔷',color:'#0d7377',muscle:'Triceps',muscles:'Triceps · Chest',instr:'Hands close, elbows back. Same form as Day 2.',badges:[]},
+    {name:'Inverted Row',sets:3,reps:'12',rest:60,icon:'🔄',color:'#0d7377',muscle:'Back',muscles:'Back · Biceps',instr:'Cable bar hip height, body straight, pull chest to bar.',badges:['back'],isKey:true},
+    {name:'Dead Bug',sets:3,reps:'10 each side',rest:45,icon:'🪲',color:'#dc2626',muscle:'Core',muscles:'Deep Core',instr:'Lower back flat to floor throughout. Slow and deliberate.',badges:['back'],isKey:true},
+    {name:'Lying Hamstring Stretch',sets:1,reps:'60s each leg',rest:0,icon:'🦵',color:'#0d7377',muscle:'Hamstrings',muscles:'Hamstrings',instr:'Towel around foot, leg to ceiling. Spine fully supported.',badges:['back','knee'],isStretch:true},
+   ]},
+  {id:5,label:'Day 5',name:'Full Upper Body',type:'gym',emoji:'⚡',ac:'#7c3aed',
+   warmup:'8–10 min elliptical + arm swings and shoulder mobility circles',
+   cooldown:'Chest opener · Lat stretch · Rear delt cross-body — 30s each side',
+   exercises:[
+    {name:'Cable Press + Cable Row (Superset A)',sets:3,reps:'12 each',rest:60,icon:'↔️',color:'#7c3aed',muscle:'Chest+Back',muscles:'Chest · Back · Shoulders',instr:'SUPERSET: Cable chest press immediately followed by seated cable row. No rest between A and B.',badges:['back'],isSuperset:true},
+    {name:'Incline DB Press + Lat Pulldown (Superset B)',sets:3,reps:'12 each',rest:60,icon:'↕️',color:'#7c3aed',muscle:'Upper Chest',muscles:'Upper Chest · Lats',instr:'SUPERSET: Incline dumbbell press immediately followed by lat pulldown. Rest 60s between rounds only.',badges:[],isSuperset:true},
+    {name:'Seated Arnold Press',sets:3,reps:'12',rest:60,icon:'🌀',color:'#7c3aed',muscle:'Shoulders',muscles:'All 3 Shoulder Heads · Triceps',instr:'Palms facing you at start. Rotate palms forward as you press. Reverse on way down.',badges:['back']},
+    {name:'Cable Face Pull',sets:3,reps:'15',rest:45,icon:'🎯',color:'#dc2626',muscle:'Rear Delts',muscles:'Rear Deltoids · Rotator Cuff',instr:'Always present on upper body days. Cable at eye height, elbows high and wide.',badges:[],isKey:true},
+    {name:'Dumbbell Curl + Tricep Pushdown (Superset C)',sets:2,reps:'15 each',rest:60,icon:'💪',color:'#7c3aed',muscle:'Arms',muscles:'Biceps · Triceps',instr:'SUPERSET: Dumbbell curl then cable pushdown.',badges:[],isSuperset:true},
+    {name:'Pike Pushup',sets:2,reps:'10',rest:60,icon:'⛰️',color:'#7c3aed',muscle:'Shoulders',muscles:'Shoulders · Triceps · Core',instr:'Hips high (inverted V). Lower head between hands to floor. Press back up.',badges:[],isFinisher:true},
+    {name:'Wide Pushup',sets:2,reps:'10',rest:45,icon:'↔️',color:'#059669',muscle:'Chest',muscles:'Outer Chest · Triceps',instr:'Hands wider than shoulders. More outer chest activation.',badges:[],isFinisher:true},
+    {name:'Diamond Pushup',sets:2,reps:'10',rest:45,icon:'🔷',color:'#059669',muscle:'Triceps',muscles:'Triceps · Inner Chest',instr:'Diamond hands under chest. Tricep burnout to finish.',badges:[],isFinisher:true},
+   ]},
+  {id:6,label:'Day 6',name:'Yoga',type:'yoga',emoji:'🧘',ac:'#059669',
+   yoga:[
+    {name:'Low Lunge (Anjaneyasana)',focus:'Hip Flexors — Critical',dur:'90s each side',icon:'🦵',instr:'After years of incline treadmill, hip flexors are chronically tight. You will feel this — that\'s exactly why you need it.'},
+    {name:'Pigeon Pose',focus:'Deep Hip Opener',dur:'90s each side',icon:'🕊️',instr:'Targets piriformis and hip rotators. Tight hips pull on the lumbar spine — releasing this helps your back.'},
+    {name:'Cat-Cow',focus:'Lower Back — Therapeutic',dur:'10 slow reps',icon:'🐱',instr:'Best movement for lower back mobility. Do this daily, not just yoga days.'},
+    {name:'Supine Spinal Twist',focus:'Lumbar & Thoracic Spine',dur:'60s each side',icon:'🌀',instr:'Lie on back, knee across body to floor, both shoulders down. Gentle rotational release.'},
+    {name:'Downward Dog',focus:'Full Body Lengthening',dur:'30–60s',icon:'⬇️',instr:'Hips high, heels to floor, spine long. Stretches hamstrings, calves, shoulders and spine simultaneously.'},
+    {name:'Child\'s Pose',focus:'Spine Decompression',dur:'As needed',icon:'🙏',instr:'Arms forward, forehead down, hips to heels. Decompresses the entire spine.'},
+   ]},
+  {id:7,label:'Day 7',name:'Full Rest',type:'rest',emoji:'🌙',ac:'#64748b'},
+];
+
+// ─── APP STATE ────────────────────────────────────────────────────────────────
+let S={screen:'home',day:null,exIdx:0,setNum:1,timeLeft:0,timerOn:false,timerDone:false,iv:null};
+const fmt=s=>`${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+function go(p){if(S.iv&&(p.screen||p.exIdx!=null))clearInterval(S.iv);Object.assign(S,p);render();}
+function startDay(d){if(S.iv)clearInterval(S.iv);S={screen:d.type==='rest'?'restday':d.type==='yoga'?'yoga':d.treadmill?'treadmill':'warmup',day:d,exIdx:0,setNum:1,timeLeft:0,timerOn:false,timerDone:false,iv:null};render();}
+function startRest(){const ex=S.day.exercises[S.exIdx];if(!ex.rest||ex.isStretch){advance();return;}go({screen:'rest'});if(S.iv)clearInterval(S.iv);S.timeLeft=ex.rest;S.timerOn=true;S.timerDone=false;S.iv=setInterval(()=>{if(S.timeLeft>0){S.timeLeft--;render();}else{clearInterval(S.iv);S.timerOn=false;S.timerDone=true;render();}},1000);}
+function advance(){if(S.iv)clearInterval(S.iv);const ex=S.day.exercises[S.exIdx];const ls=S.setNum>=ex.sets,le=S.exIdx>=S.day.exercises.length-1;if(ls){if(le)go({screen:'complete',timerOn:false,timerDone:false});else go({screen:'exercise',exIdx:S.exIdx+1,setNum:1,timerOn:false,timerDone:false});}else{go({screen:'exercise',setNum:S.setNum+1,timerOn:false,timerDone:false});}}
+function skipRest(){clearInterval(S.iv);S.timerOn=false;advance();}
+
+function weightBox(n,ac){
+  const w=calcWeight(n,currentWeek);if(!w)return'';
+  let r='';
+  if(w.type==='bodyweight')r=`<div class="wc-suggest"><span class="wc-bw">Bodyweight</span><span class="wc-unit" style="margin-left:.3rem">— focus on rep quality</span></div>`;
+  else if(w.type==='stretch')return'';
+  else{const atM=w.weight>=w.max;r=`<div class="wc-suggest"><span class="wc-suggest-label">Suggested&nbsp;</span><span class="wc-weight">${w.weight}</span><span class="wc-unit">&nbsp;${w.unit}</span>${atM?'<span class="wc-max">· max reached</span>':''}</div>`;}
+  return`<div class="wc-box"><div class="wc-week-group"><span class="wc-week-label">Week</span><button class="wc-btn" onclick="adjWeek(-1)">−</button><span class="wc-weeknum" style="color:${ac}">${currentWeek}</span><button class="wc-btn" onclick="adjWeek(1)">+</button></div><span class="wc-arrow">→</span>${r}</div>`;
+}
+
+function imgHTML(ex){
+  const url = getImg(ex.name);
+  const bg = `background:linear-gradient(135deg,${ex.color}22,${ex.color}44)`;
+  const fb = `<div class="ex-fallback-icon">${ex.icon}</div><div class="ex-fallback-lbl" style="color:${ex.color}">${ex.muscle}</div>`;
+  if(url){
+    return `<div class="ex-img-wrap" style="${bg}"><img class="ex-img" src="${url}" alt="${ex.name}"><div class="ex-fallback" style="display:none;${bg}">${fb}</div></div>`;
+  }
+  // Placeholder — will be swapped in when image downloads
+  return `<div class="ex-img-wrap" style="${bg}" data-exname="${ex.name}" data-icon="${ex.icon}" data-color="${ex.color}" data-muscle="${ex.muscle}" data-bg="${bg}"><div class="ex-fallback" style="display:flex;${bg}">${fb}</div></div>`;
+}
+
+function badges(ex){let h='';(ex.badges||[]).forEach(b=>{if(b==='back')h+=`<span class="badge badge-back">BACK MOD</span>`;if(b==='knee')h+=`<span class="badge badge-knee">KNEE MOD</span>`;});if(ex.isKey)h+=`<span class="badge badge-key">KEY EXERCISE</span>`;return h?`<div class="badges">${h}</div>`:'';}
+
+// ─── SCREENS ─────────────────────────────────────────────────────────────────
+function renderHome(){
+  const cards=DAYS.map(d=>`<button class="day-card" style="border-left-color:${d.ac}" onclick="startDay(DAYS[${d.id-1}])"><div class="dc-emoji">${d.emoji}</div><div class="dc-num" style="color:${d.ac}">${d.label}</div><div class="dc-name">${d.name}</div><div class="dc-count">${d.type==='rest'?'Full rest day':d.type==='yoga'?`${d.yoga.length} poses`:d.treadmill?`49 min treadmill + ${d.exercises.length} finishers`:`${d.exercises.length} exercises`}</div></button>`).join('');
+  return`<div class="home-hero"><div class="home-tag">Your Workout Plan</div><div class="home-h1">ASAD'S <span>6-DAY</span> PROGRAM</div><div class="home-meta">50 yrs · 80–85 kg · Muscle & Strength · Knee + Back modified</div><div class="home-week-bar"><span class="hw-label">Current Week</span><div class="hw-stepper"><button class="hw-btn" onclick="adjWeek(-1)">−</button><span class="hw-num">${currentWeek}</span><button class="hw-btn" onclick="adjWeek(1)">+</button></div><span class="hw-tip">Used across all exercises</span></div></div><div class="days-grid">${cards}</div>`;
+}
+function renderWarmup(){const d=S.day;return`<div class="hdr"><button class="hdr-back" onclick="go({screen:'home'})">←</button><span style="font-size:1.1rem">${d.emoji}</span><div><div class="hdr-title">${d.name}</div><div class="hdr-sub">${d.label} · Week ${currentWeek}</div></div></div><div class="scroll"><div class="center-screen"><div class="big-icon">🏃</div><div class="screen-h2">Warm-Up First</div><div class="screen-p">${d.warmup}</div><button class="btn btn-primary" style="background:${d.ac};max-width:260px" onclick="go({screen:'exercise'})">Let's Go →</button></div></div>`;}
+function renderTreadmill(){const d=S.day;const rows=d.treadmill.map(p=>`<div class="tread-row" style="background:${p.full?'#1a1000':'#111827'};border-left-color:${p.full?d.ac:'#374151'}"><span style="font-size:1rem">${p.full?'🔥':'🚶'}</span><div style="flex:1"><div class="tread-phase" style="color:${p.full?d.ac:'#94a3b8'}">${p.phase}</div><div class="tread-detail">${p.speed} · ${p.incline} incline</div></div><div class="tread-dur">${p.dur}</div></div>`).join('');return`<div class="hdr"><button class="hdr-back" onclick="go({screen:'home'})">←</button><span style="font-size:1.1rem">${d.emoji}</span><div><div class="hdr-title">${d.name}</div></div></div><div class="scroll"><div class="section-hd">Treadmill Routine</div><div class="section-sub">Complete all intervals, then start the finisher</div><div class="tread-list">${rows}</div><div style="padding:.75rem"><button class="btn btn-primary" style="background:${d.ac}" onclick="go({screen:'exercise'})">Treadmill Done — Start Finisher →</button></div></div>`;}
+function renderExercise(){
+  const d=S.day,ex=d.exercises[S.exIdx];
+  const total=d.exercises.length,idx=S.exIdx,pct=Math.round((idx/total)*100);
+  let tag='';if(ex.isFinisher)tag=`<span class="ex-tag" style="color:${d.ac}">Finisher</span>`;if(ex.isSuperset)tag=`<span class="ex-tag" style="color:#7c3aed">Superset</span>`;
+  let bars='';for(let i=0;i<ex.sets;i++)bars+=`<div class="set-pip" style="${i<S.setNum?'background:'+d.ac:''}"></div>`;
+  return`<div class="hdr"><button class="hdr-back" onclick="go({screen:'home'})">←</button><span style="font-size:1rem">${d.emoji}</span><div style="flex:1;min-width:0"><div class="hdr-title">${d.name}</div><div class="hdr-sub">Exercise ${idx+1}/${total} · Week ${currentWeek}</div></div><div style="font-size:.65rem;color:var(--muted)">${pct}%</div></div>
+  <div class="prog"><div class="prog-fill" style="width:${Math.max(3,pct)}%;background:${d.ac}"></div></div>
+  <div class="scroll">${imgHTML(ex)}<div class="ex-body">${tag}
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:3px">
+      <div class="ex-name" style="flex:1">${ex.name}</div>
+      <div class="reps-box"><div class="reps-val" style="color:${d.ac}">${ex.reps}</div><div class="reps-lbl">REPS</div></div>
+    </div>
+    ${weightBox(ex.name,d.ac)}<div class="ex-muscles">${ex.muscles}</div>${badges(ex)}
+    <div class="ex-instr">${ex.instr}</div>
+    <div class="sets-hd"><span class="sets-lbl">Sets</span><span class="sets-val" style="color:${d.ac}">${S.setNum} / ${ex.sets}</span></div>
+    <div class="set-bars">${bars}</div>
+    <div class="ex-meta"><span>Exercise ${idx+1} of ${total}</span><span>Rest: ${ex.rest}s</span></div>
+    <button class="btn btn-primary" style="background:${d.ac}" onclick="startRest()">${ex.isStretch?'Done — Next →':`Set ${S.setNum} Done — Start Rest Timer →`}</button>
+    ${idx>0?`<button class="btn btn-ghost" onclick="go({screen:'exercise',exIdx:${idx-1},setNum:1})">← Previous</button>`:''}
+  </div></div>`;
+}
+function renderRest(){
+  const d=S.day,ex=d.exercises[S.exIdx];
+  const max=ex.rest||60,pct=max>0?Math.round(((max-S.timeLeft)/max)*100):100;
+  const r=54,circ=2*Math.PI*r,offset=circ-((pct/100)*circ);
+  const ls=S.setNum>=ex.sets,le=S.exIdx>=d.exercises.length-1;
+  const nm=ls?(le?'Last exercise — great work!':`Up next: ${d.exercises[S.exIdx+1].name}`):`${ex.reps} reps · Set ${S.setNum+1} of ${ex.sets}`;
+  const bl=ls&&le?'Finish Workout 🎉':ls?'Next Exercise →':`Start Set ${S.setNum+1} →`;
+  return`<div class="hdr"><button class="hdr-back" onclick="go({screen:'exercise'})">←</button><span>${d.emoji}</span><div><div class="hdr-title">Rest Timer</div><div class="hdr-sub">${d.name}</div></div></div>
+  <div class="scroll"><div class="rest-wrap">
+    <div class="rest-lbl">${ls?'Last set done!':'Set '+S.setNum+' done'}</div><div class="rest-ex" style="color:${d.ac}">${ex.name}</div>
+    <svg width="136" height="136" style="margin:.4rem 0">
+      <circle cx="68" cy="68" r="${r}" fill="none" stroke="#1e2d3d" stroke-width="9"/>
+      <circle cx="68" cy="68" r="${r}" fill="none" stroke="${d.ac}" stroke-width="9" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 68 68)"/>
+      <text x="68" y="62" text-anchor="middle" fill="#e2e8f0" font-size="28" font-weight="800" font-family="inherit">${fmt(S.timeLeft)}</text>
+      <text x="68" y="80" text-anchor="middle" fill="#64748b" font-size="11" font-family="inherit">REST</text>
+    </svg>
+    <div class="rest-next">${nm}</div>
+    ${S.timerDone||S.timeLeft===0?`<button class="btn btn-primary" style="background:${d.ac};max-width:300px" onclick="advance()">${bl}</button>`:`<button class="btn btn-ghost" style="max-width:300px" id="skipBtn">Skip Rest →</button>`}
+  </div></div>`;
+}
+function renderYoga(){const d=S.day;const cards=d.yoga.map(p=>`<div class="yoga-card" style="border-left-color:${d.ac}"><div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.35rem"><span style="font-size:1.3rem">${p.icon}</span><div><div class="yoga-focus" style="color:${d.ac}">${p.focus}</div><div class="yoga-name">${p.name}</div><div class="yoga-dur">${p.dur}</div></div></div><div class="yoga-instr">${p.instr}</div></div>`).join('');return`<div class="hdr"><button class="hdr-back" onclick="go({screen:'home'})">←</button><span>${d.emoji}</span><div><div class="hdr-title">${d.name}</div></div></div><div class="scroll"><div class="section-hd">Yoga Session</div><div style="background:#111827;border-radius:9px;margin:.2rem .7rem .5rem;padding:.7rem .85rem;border-left:3px solid ${d.ac};font-size:.75rem;color:var(--muted)"><strong style="color:${d.ac}">Recommended:</strong> "Yoga with Adriene — Yoga for Back Pain" on YouTube.</div>${cards}<div style="padding:.7rem"><button class="btn btn-primary" style="background:${d.ac}" onclick="go({screen:'home'})">Done — Great Work 🧘</button></div></div>`;}
+function renderRestDay(){return`<div class="hdr"><button class="hdr-back" onclick="go({screen:'home'})">←</button><span>🌙</span><div><div class="hdr-title">Full Rest</div></div></div><div class="scroll"><div class="center-screen"><div class="big-icon">🌙</div><div class="screen-h2">Full Rest Day</div><div class="screen-p">Muscles grow during recovery. This day is not optional.</div><div class="rest-day-tips">${['7–8 hours sleep','130–170g protein today','2.5–3L water','Light walk OK — no gym'].map(t=>`<div class="tip-row"><span class="tip-check">✓</span><span class="tip-txt">${t}</span></div>`).join('')}</div><button class="btn btn-ghost" style="max-width:220px" onclick="go({screen:'home'})">← Back to Schedule</button></div></div>`;}
+function renderComplete(){const d=S.day,ts=d.exercises.reduce((s,e)=>s+e.sets,0);return`<div class="hdr"><button class="hdr-back" onclick="go({screen:'home'})">←</button><span>${d.emoji}</span><div><div class="hdr-title">Workout Complete!</div></div></div><div class="scroll"><div class="complete-wrap"><div class="big-icon">🏆</div><div class="screen-h2">Day Complete!</div><div style="color:${d.ac};font-size:.95rem;font-weight:700">${d.name}</div><div class="stats-row"><div class="stat-box"><div class="stat-n" style="color:${d.ac}">${d.exercises.length}</div><div class="stat-l">Exercises</div></div><div class="stat-box"><div class="stat-n" style="color:${d.ac}">${ts}</div><div class="stat-l">Sets</div></div></div>${d.cooldown?`<div class="cooldown-box"><div class="cooldown-tag">Cool-Down</div><div class="cooldown-txt">${d.cooldown}</div></div>`:''}<button class="btn btn-primary" style="background:${d.ac};max-width:300px" onclick="go({screen:'home'})">Back to Schedule</button></div></div>`;}
+
+function render(){
+  const m=document.getElementById('main');if(!m)return;
+  const fns={home:renderHome,warmup:renderWarmup,treadmill:renderTreadmill,exercise:renderExercise,rest:renderRest,yoga:renderYoga,restday:renderRestDay,complete:renderComplete};
+  m.innerHTML=fns[S.screen]?fns[S.screen]():'';
+  const skip=document.getElementById('skipBtn');if(skip)skip.onclick=skipRest;
+}
+
+render();
+initImages(); // Start download + embed process
+</script>
+</body>
+</html>
